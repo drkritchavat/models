@@ -161,7 +161,7 @@ def seir_Rn_equations(y0,
     """
     Modified version of SEIR models with effective reproductive number
     """
-    S, E, I, R, R, CI, = y0
+    S, E, I, R, CI, = y0
     dS = -(1/dInf)*Rn*I
     dE = (1/dInf)*Rn*I - (1/dInc)*E
     dI = (1/dInc)*E - (1/dInf)*I
@@ -188,7 +188,7 @@ def seir_Rn_solver(y0,
     df = df.reset_index()
     df.columns = ['DAYS','S','E','I','R','CI']
     dCI = df.loc[:,['CI']].diff()
-    dCICQ.columns = ['dCI']
+    dCI.columns = ['dCI']
     df = pd.concat([df,dCI],axis=1)
 
     epicurve = df.loc[:,['dCI']]
