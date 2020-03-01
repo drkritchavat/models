@@ -9,7 +9,6 @@ import json
 def seiqr(model,
           y0=[1000000,0,1,0,0,0,0], # [S,E,I,Q,R,CI,CQ]
           t=365,
-          I0=1,
           R0_I=2.2,
           R0_Q=0,
           epsilon_E=0.2,
