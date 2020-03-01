@@ -16,26 +16,6 @@ def to_beta(R0,durations,N):
     """
     return (R0/N)/durations
 
-#def seiqr_equations(y0,
-#                    t,
-#                    beta_I,
-#                    beta_Q,
-#                    alpha,
-#                    epsilon_E,
-#                    epsilon_I,
-#                    gamma):
-#    """
-#    Modified version of SEIQR eqations (include Q compartment)
-#    """
-#    S, E, I, Q, R, CI, CQ = y0
-#    dS = -beta_I*S*I - beta_Q*S*Q
-#    dE = beta_I*S*I + beta_Q*S*Q - alpha*E - epsilon_E*E
-#    dI = alpha*E - epsilon_I*I - gamma*I
-#    dQ = epsilon_E*E + epsilon_I*I - gamma*Q
-#    dR = gamma*(I+Q)
-#    dCI = alpha*E
-#    dCQ = epsilon_E*E + epsilon_I*I
-#    return dS, dE, dI, dQ, dR, dCI, dCQ
 def seiqr_equations(y0,
                     t,
                     beta_I,
@@ -171,3 +151,48 @@ def ordinal_seir(y0,
     df = pd.DataFrame(y)
     df.columns = ['S','E','I','R','C']
     return df
+
+
+def seir_Rn_equations(y0,
+                      t,
+                      Rn,
+                      dInc,
+                      dInf):
+    """
+    Modified version of SEIR models with effective reproductive number
+    """
+    S, E, I, R, R, CI, = y0
+    dS = -(1/dInf)*Rn*I
+    dE = (1/dInf)*Rn*I - (1/dInc)*E
+    dI = (1/dInc)*E - (1/dInf)*I
+    dR = (1/dInf)*I
+    dCI = (1/dInc)*E
+    return dS, dE, dI, dR, dCI
+
+def seir_Rn_solver(y0,
+                   t,
+                   Rn,
+                   dInc,
+                   dInf):
+    """
+    SEIQR Solver
+    """
+    args = (Rn,
+            dInc,
+            dInf)
+
+    t = np.arange(0,t,1)
+    df = pd.DataFrame(
+        odeint(seir_Rn_equations,y0,t,args))
+
+    df = df.reset_index()
+    df.columns = ['DAYS','S','E','I','R','CI']
+    dCI = df.loc[:,['CI']].diff()
+    dCICQ.columns = ['dCI']
+    df = pd.concat([df,dCI],axis=1)
+
+    epicurve = df.loc[:,['dCI']]
+    epicurve['week'] = np.floor(epicurve.index/7)
+    epicurve = epicurve.groupby('week')['dCI'].sum()
+    
+    return df,epicurve
